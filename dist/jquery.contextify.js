@@ -1,5 +1,5 @@
 /*!
-* jQuery Contextify v1.1.0 (http://contextify.js.org)
+* jQuery Contextify v1.0.8 (http://contextify.js.org)
 * Copyright (c) 2016 Adam Bouqdib
 * Licensed under GPL-2.0 (http://abemedia.co.uk/license) 
 */
@@ -7,15 +7,15 @@
 /*global define */
 
 ;(function( factory ) {
-    if ( typeof define === "function" && define.amd ) {
+	if ( typeof define === "function" && define.amd ) {
 
-        // AMD. Register as an anonymous module.
-        define([ "jquery" ], factory );
-    } else {
+		// AMD. Register as an anonymous module.
+		define([ "jquery" ], factory );
+	} else {
 
-        // Browser globals
-        factory( jQuery, window );
-    }
+		// Browser globals
+		factory( jQuery, window );
+	}
 }(function ( $, window ) {
 
     var pluginName = 'contextify',
@@ -26,9 +26,7 @@
             menuClass: "dropdown-menu",
             headerClass: "dropdown-header",
             dividerClass: "divider",
-            before: false,
-            hideOnMouseUp: true,
-            hideOnScroll: true
+            before: false
         },
         contextifyId = 0,
         $window = $(window);
@@ -38,25 +36,27 @@
 
         this.options = $.extend( {}, defaults, options) ;
 
+        this._defaults = defaults;
+        this._name = pluginName;
+
         this.init();
     }
 
     Plugin.prototype.init = function () {
         var options = $.extend( {}, this.options, $(this.element).data());
         options.id = contextifyId;
-        var menu;
+
         $(this.element)
             .attr('data-contextify-id', options.id)
             .on('contextmenu', function (e) {
                 e.preventDefault();
-                e.stopPropagation();
 
                 // run before
                 if(typeof(options.before) === 'function') {
                     options.before(this, options);
                 }
 
-                menu = $('<ul class="' + options.menuClass + '" role="menu" id="' + options.menuId + '" data-contextify-id="' + options.id + '"/>');
+                var menu = $('<ul class="' + options.menuClass + '" role="menu" id="' + options.menuId + '" data-contextify-id="' + options.id + '"/>');
 
                 menu.data(options);
 
@@ -86,9 +86,9 @@
                             a.css('cursor', 'pointer');
                         }
                         if (item.data) {
-                            for (var data in item.data) {
-                                menu.attr('data-' + data, item.data[data]);
-                            }
+                        for (var data in item.data) {
+                            menu.attr('data-' + data, item.data[data]);
+                        }
                             a.data(item.data);
                         }
                         a.html(item.text);
@@ -120,31 +120,14 @@
                     .css('left', x)
                     .css('position', 'fixed')
                     .show();
-
-                menu.on('click', function(e){
-                    e.stopPropagation();
-                });
             })
-        ;
+        .parents().on('mouseup', function () {
+            $("#" + options.menuId).hide();
+        });
 
-        if( true === options.hideOnMouseUp ){
-            $(this.element)
-                .parents().on('mouseup', function () {
-                $("#" + options.menuId).hide();
-            });
-        }
-        else{
-            $(this.element)
-                .parents().on('contextmenu click', function () {
-                $("#" + options.menuId).hide();
-            });
-        }
-
-        if(true === options.hideOnScroll) {
-            $window.on('scroll', function () {
-                $("#" + options.menuId).hide();
-            });
-        }
+        $window.on('scroll', function () {
+            $("#" + options.menuId).hide();
+        });
 
         contextifyId++;
     };
@@ -157,8 +140,8 @@
             .removeAttr('data-contextify-id')
             .off('contextmenu')
             .parents().off('mouseup', function () {
-            $("#" + options.menuId).hide();
-        });
+                $("#" + options.menuId).hide();
+            });
 
         $window.off('scroll', function () {
             $("#" + options.menuId).hide();
@@ -166,7 +149,6 @@
 
         $("#" + options.menuId).remove();
     };
-
 
     $.fn[pluginName] = function ( options ) {
         return this.each(function () {
